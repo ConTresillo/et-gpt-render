@@ -1,43 +1,36 @@
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeft, Camera, Ruler, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { SparklesIcon, VercelIcon } from "@/components/chat/icons";
-import { Preview } from "@/components/chat/preview";
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex h-dvh w-screen bg-sidebar">
-      <div className="flex w-full flex-col bg-background p-8 xl:w-[600px] xl:shrink-0 xl:rounded-r-2xl xl:border-r xl:border-border/40 md:p-16">
-        <Link
-          className="flex w-fit items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
-          href="/"
-        >
-          <ArrowLeftIcon className="size-3.5" />
-          Back
-        </Link>
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-10">
-          <div className="flex flex-col gap-2">
-            <div className="mb-2 flex size-9 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground ring-1 ring-border/50">
-              <SparklesIcon size={14} />
-            </div>
-            {children}
-          </div>
-        </div>
-      </div>
+const FEATURES = [
+  { icon: Camera, title: "Product knowledge", text: "Explore inspection systems and catalog specifications." },
+  { icon: Ruler, title: "Optics guidance", text: "Review inputs and approve calculations before they run." },
+  { icon: ShieldCheck, title: "Your workspace", text: "Return to saved conversations and continue your work." },
+];
 
-      <div className="hidden flex-1 flex-col overflow-hidden pl-12 xl:flex">
-        <div className="flex items-center gap-1.5 pt-8 text-[13px] text-muted-foreground/50">
-          Powered by
-          <VercelIcon size={14} />
-          <span className="font-medium text-muted-foreground">AI Gateway</span>
-        </div>
-        <div className="flex-1 pt-4">
-          <Preview />
-        </div>
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  return <main className="min-h-dvh bg-[#f4f7fc] text-slate-900 lg:grid lg:grid-cols-2">
+    <section className="relative hidden overflow-hidden bg-[#003399] px-12 py-8 text-white lg:flex lg:flex-col xl:px-20">
+      <div className="absolute -right-32 top-32 h-96 w-96 rounded-full border-[48px] border-white/5" aria-hidden="true" />
+      <div className="absolute -bottom-40 -left-32 h-[32rem] w-[32rem] rounded-full border-[64px] border-white/5" aria-hidden="true" />
+      <Link href="/" className="relative w-fit rounded-xl bg-white px-5 py-3"><img src="/images/earthtekniks-logo.png" alt="Earth Tekniks" className="h-12 w-auto" /></Link>
+      <div className="relative my-auto max-w-lg space-y-6 py-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-200">Automation · Inspection · Machine vision</p>
+        <h2 className="text-4xl font-semibold leading-tight">Expert guidance.<br />For your next inspection solution.</h2>
+        <p className="text-lg leading-relaxed text-blue-100">Explore EarthTekniks products, work through optics calculations, and find answers grounded in our technical knowledge.</p>
+        <div className="space-y-4">{FEATURES.map(({ icon: Icon, title, text }) => <div key={title} className="flex gap-4"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10"><Icon className="size-5" /></span><div><h3 className="font-medium">{title}</h3><p className="mt-1 text-sm leading-relaxed text-blue-100/80">{text}</p></div></div>)}</div>
       </div>
-    </div>
-  );
+      <p className="relative text-xs text-blue-100/70">Earth Tekniks · Industrial automation since 2004</p>
+    </section>
+    <section className="flex min-h-dvh flex-col px-6 py-7 sm:px-12 lg:px-16">
+      <Link href="/" className="flex w-fit items-center gap-2 text-sm text-slate-500 hover:text-[#003399]"><ArrowLeft className="size-4" />Back to assistant</Link>
+      <div className="mx-auto my-auto w-full max-w-md py-10">
+        <img src="/images/earthtekniks-logo.png" alt="Earth Tekniks" className="mb-8 h-12 w-auto lg:hidden" />
+        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-7 shadow-xl shadow-blue-950/5 sm:p-9">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#003399]">EarthTekniks Assistant</p>
+          {children}
+        </div>
+        <p className="mt-6 text-center text-xs leading-relaxed text-slate-500">Need administrator access? Sign in with your administrator account.</p>
+      </div>
+    </section>
+  </main>;
 }

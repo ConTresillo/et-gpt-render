@@ -16,6 +16,16 @@
   try { origin = new URL(config.chatOrigin); } catch { console.warn('ETPL preview: invalid chat origin', config.chatOrigin); return; }
   const widgetId = Number(config.widgetId);
   if (!['http:', 'https:'].includes(origin.protocol) || !Number.isInteger(widgetId) || widgetId < 1) { console.warn('ETPL preview: chat embed disabled by invalid configuration', config); return; }
+  // Keep account access visible outside the widget, using the configured origin.
+  document.querySelectorAll('header .header-left > ul, .rsnp-mnu > ul').forEach(menu => {
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = `${origin.origin}/login`;
+    link.textContent = 'SIGN IN';
+    link.style.fontWeight = '700';
+    item.appendChild(link);
+    menu.appendChild(item);
+  });
   const script = document.createElement('script');
   script.src = `${origin.origin}/widget.js`;
   script.dataset.widgetId = String(widgetId);

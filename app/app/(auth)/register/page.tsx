@@ -47,13 +47,13 @@ export default function Page() {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Create account</h1>
-      <p className="text-sm text-muted-foreground">Get started for free</p>
-      <AuthForm action={handleSubmit} defaultEmail={email}>
+      <p className="text-sm text-slate-500">Create your EarthTekniks account</p>
+      <AuthForm action={handleSubmit} defaultEmail={email} passwordAutoComplete="new-password">
         <SubmitButton isSuccessful={isSuccessful}>Sign up</SubmitButton>
-        <p className="text-center text-[13px] text-muted-foreground">
+        <p className="text-center text-[13px] text-slate-500">
           {"Have an account? "}
           <Link
-            className="text-foreground underline-offset-4 hover:underline"
+            className="text-[#003399] underline-offset-4 hover:underline"
             href="/login"
           >
             Sign in

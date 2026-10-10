@@ -23,11 +23,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
-      <aside className="w-56 shrink-0 border-r bg-sidebar flex flex-col">
-        <div className="h-14 flex items-center px-4 border-b">
-          <span className="font-semibold text-sm tracking-tight" style={{ color: "#003399" }}>
-            ET-GPT Admin
-          </span>
+      <aside className="w-56 shrink-0 border-r border-blue-100 bg-[#f4f7fc] flex flex-col">
+        <div className="flex flex-col gap-2 px-4 py-5 border-b border-blue-100 bg-white">
+          <img src="/images/earthtekniks-logo.png" alt="Earth Tekniks" className="h-auto w-44" />
+          <span className="text-xs font-medium tracking-wide text-[#003399]">ADMIN WORKSPACE</span>
         </div>
         <nav className="flex-1 p-2 space-y-1">
           {NAV.map(({ href, label, icon: Icon, exact }) => {
@@ -39,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={cn(
                   "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
                   active
-                    ? "bg-primary/10 text-primary font-medium"
+                    ? "bg-[#003399] text-white font-medium shadow-sm"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >

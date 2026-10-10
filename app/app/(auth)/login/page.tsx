@@ -50,15 +50,15 @@ export default function Page() {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-slate-500">
         Sign in to your account to continue
       </p>
       <AuthForm action={handleSubmit} defaultEmail={email}>
         <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
-        <p className="text-center text-[13px] text-muted-foreground">
+        <p className="text-center text-[13px] text-slate-500">
           {"No account? "}
           <Link
-            className="text-foreground underline-offset-4 hover:underline"
+            className="text-[#003399] underline-offset-4 hover:underline"
             href="/register"
           >
             Sign up
