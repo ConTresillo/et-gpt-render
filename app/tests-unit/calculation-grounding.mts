@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import { proposeCalculation } from "../lib/ai/tools/local";
+import { statedInputs } from "../lib/calc";
+const request = "Object width = 100 mm Sensor width = 8.8 mm Focal length = 25 mm working distance give me a suitable lens model";
+const schema = (required: string[]) => ({ type: "object", properties: Object.fromEntries(required.map(key => [key, { type: "number" }])), required });
+const tool = proposeCalculation({ userTexts: [request], call: async (_name, args) => ({ structuredContent: { input_schema: schema(args.formula_id === "find_wd" ? ["object_size_mm", "sensor_size_mm", "focal_length_mm"] : ["object_size_mm", "sensor_size_mm", "working_distance_mm"]) } }) });
+const wrong = await tool.execute!({ formula_id: "find_focal", prefill: [{ name: "working_distance_mm", value: "25" }] }, {} as never) as any;
+assert(wrong.error && !wrong.prefill, "a stated focal length cannot ground working distance");
+const correct = await tool.execute!({ formula_id: "find_wd", prefill: [] }, {} as never) as any;
+assert.deepEqual(correct.prefill, { object_size_mm: 100, sensor_size_mm: 8.8, focal_length_mm: 25 });
+assert.deepEqual(statedInputs(["Which lens do I need for a 100 mm field of view?"], schema(["object_size_mm"])), { object_size_mm: 100 });
+const delegated = proposeCalculation({ userTexts: ["Which lens do I need for a 100 mm field of view?", "pick on ur own"], allowAssumptions: true, call: async () => ({ structuredContent: { input_schema: schema(["object_size_mm", "sensor_size_mm", "working_distance_mm"]) } }) });
+const proposal = await delegated.execute!({ formula_id: "find_focal", prefill: [{ name: "object_size_mm", value: "200" }, { name: "sensor_size_mm", value: "8.8" }, { name: "working_distance_mm", value: "300" }] }, {} as never) as any;
+assert.deepEqual(proposal.prefill, { object_size_mm: 100, sensor_size_mm: 8.8, working_distance_mm: 300 });
+assert.deepEqual(proposal.assumptions, [{ name: "sensor_size_mm", value: 8.8 }, { name: "working_distance_mm", value: 300 }]);
+console.log("PASS input values stay bound to their actual quantities");

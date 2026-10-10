@@ -23,3 +23,16 @@ def test_allowed_hosts_are_applied_at_construction():
     sec = mcp.settings.transport_security
     assert sec.enable_dns_rebinding_protection and "et-mcp:8003" in sec.allowed_hosts
     assert mcp.settings.host == "0.0.0.0" and mcp.settings.port == 8003
+
+
+async def test_product_database_failure_sets_mcp_error_flag(monkeypatch):
+    from et_mcp.services.catalog import query
+    monkeypatch.setattr(query.indexes, "find_model", lambda _: {
+        "matches": [{"model_name": "TEST", "table": "fa_lenses", "product_type": "fa"}]
+    })
+    monkeypatch.setattr(query, "_run", lambda _: {"error": "Database connection failed"})
+    mcp = build_mcp("catalog")
+    async with create_connected_server_and_client_session(mcp._mcp_server) as client:
+        result = await client.call_tool("get_product", {"model_name": "TEST"})
+        assert result.isError
+        assert result.structuredContent["error"] == "Database connection failed"

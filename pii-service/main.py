@@ -29,6 +29,12 @@ for name, regex, score in [
     ("IN_MOBILE_SPLIT", r"(?<![\d.])[6-9]\d{4}[\s-]\d{5}(?![\d.])", 0.7),
     ("PHONE_GROUPED", r"(?<![\d.])(?:\+\d{1,3}[\s-])?\(?\d{2,5}\)?[\s-]\d{3,5}[\s-]\d{4}(?![\d.])", 0.6),
     ("US_SSN", r"(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)", 0.85),
+    # AMEX: 15-digit starting with 34 or 37
+    ("CREDIT_CARD", r"(?<!\d)3[47]\d{13}(?!\d)", 0.85),
+    # Compact IBAN (no spaces): e.g. DE89370400440532013000
+    ("IBAN_CODE", r"(?<![A-Z0-9])[A-Z]{2}\d{2}[A-Z0-9]{11,30}(?![A-Z0-9])", 0.75),
+    # Two-word capitalized names (First Last) as fallback when spaCy NER misses them
+    ("PERSON", r"\b(?:Dr\.\s+)?[A-Z][a-z]{1,20}\s+[A-Z][a-z]{1,20}\b", 0.55),
 ]:
     analyzer.registry.add_recognizer(PatternRecognizer(supported_entity=name, patterns=[Pattern(name, regex, score)]))
 ENTITIES.extend(["IN_MOBILE", "US_PHONE", "PASSPORT", "IN_MOBILE_SPLIT", "PHONE_GROUPED"])

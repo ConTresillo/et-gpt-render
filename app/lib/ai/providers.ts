@@ -67,6 +67,17 @@ const nvidia = createOpenAICompatible({
   baseURL:
     process.env.OPENAI_COMPATIBLE_BASE_URL ?? "https://integrate.api.nvidia.com/v1",
   name: "nvidia",
+  transformRequestBody: (body) => ({
+    ...body,
+    // NVIDIA requires content even on an assistant message containing only
+    // tool calls. Mastra correctly preserves these messages without text.
+    ...(Array.isArray(body.messages) ? { messages: body.messages.map((message: any) =>
+      message.role === "assistant" && message.content == null ? { ...message, content: "" } : message) } : {}),
+    ...(body.tools ? { parallel_tool_calls: false } : {}),
+    ...(String(body.model).includes("nemotron")
+      ? { chat_template_kwargs: { enable_thinking: false } }
+      : {}),
+  }),
 });
 
 // ponytail: cast because @ai-sdk/openai-compatible bundles a newer @ai-sdk/provider; drop when pinned together.
@@ -76,6 +87,6 @@ export function getLanguageModel(
   return (useMock ? mockModel() : nvidia.chatModel(modelId)) as LanguageModel;
 }
 
-export function getTitleModel(): LanguageModel {
-  return getLanguageModel();
+export function getTitleModel(modelId?: string): LanguageModel {
+  return getLanguageModel(modelId);
 }

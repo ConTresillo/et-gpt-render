@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
       }
     : {}),
   cacheComponents: true,
+  // Keep Mastra's runtime and schema adapters in Node rather than splitting
+  // their internal schema processors across Turbopack server chunks.
+  serverExternalPackages: ["@mastra/core", "@mastra/ai-sdk", "@mastra/pg", "@mastra/memory", "@mastra/schema-compat", "zod"],
   devIndicators: false,
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,

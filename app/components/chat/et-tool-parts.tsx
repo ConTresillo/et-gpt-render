@@ -16,6 +16,7 @@ type AnyPart = {
 
 // Customer-friendly names for MCP/local tools (no raw tool jargon in the UI).
 const LABELS: Record<string, string> = {
+  calculate: "Running the approved calculation",
   createPlan: "Planning the steps",
   describe_table: "Reading a catalog table",
   get_calculator: "Reading the calculator's inputs",
@@ -37,27 +38,6 @@ const LABELS: Record<string, string> = {
 
 const box =
   "w-[min(100%,460px)] rounded-xl border border-border/50 bg-card p-3 text-[13px] shadow-[var(--shadow-card)]";
-
-function Plan({ part }: { part: AnyPart }) {
-  const out = part.output as
-    | { goal?: string; steps?: { area: string; title: string }[] }
-    | undefined;
-  if (!out?.steps) {
-    return null;
-  }
-  return (
-    <div aria-label="Plan" className={box}>
-      <div className="mb-1.5 font-semibold text-primary">Plan</div>
-      <ol className="list-decimal space-y-1 pl-5">
-        {out.steps.map((s, i) => (
-          <li key={`${i}-${s.title}`}>
-            {s.title} <span className="text-muted-foreground">· {s.area}</span>
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
 
 function Activity({ name, state }: { name: string; state?: string }) {
   const done = state === "output-available";
@@ -82,6 +62,7 @@ function CalculationForm({ part }: { part: AnyPart }) {
         formula_id: string;
         schema: { properties: Record<string, Prop>; required?: string[] };
         prefill: Record<string, number | string>;
+        assumptions?: { name: string; value: number | string }[];
         error?: string;
       }
     | undefined;
@@ -103,7 +84,7 @@ function CalculationForm({ part }: { part: AnyPart }) {
 
   if (!out || out.error) {
     return (
-      <div className={box}>{out?.error ?? "That calculator is unavailable."}</div>
+      <div className={box}>Unable to prepare the calculation yet. No calculation has run.</div>
     );
   }
   const props = out.schema.properties ?? {};
@@ -111,28 +92,18 @@ function CalculationForm({ part }: { part: AnyPart }) {
   const busy = status === "submitted" || status === "streaming";
 
   const submit = (action: "approve" | "cancel") => {
-    let args: Record<string, number | string> | undefined;
+    let args: Record<string, string> | undefined;
     if (action === "approve") {
       args = {};
-      for (const [k, p] of Object.entries(props)) {
+      for (const k of Object.keys(props)) {
         const raw = (values[k] ?? "").trim();
-        if (!raw) {
-          if (required.has(k)) {
-            setErr(`Please fill in "${p.title ?? k}".`);
-            return;
-          }
-          continue;
-        }
-        if (p.type === "number" || p.type === "integer") {
-          const num = Number(raw);
-          if (!Number.isFinite(num)) {
-            setErr(`"${p.title ?? k}" must be a number.`);
-            return;
-          }
-          args[k] = num;
-        } else {
+        if (raw) {
           args[k] = raw;
         }
+      }
+      if (Object.keys(args).length === 0) {
+        setErr("Please fill in at least one value before approving.");
+        return;
       }
     }
     setErr(null);
@@ -163,6 +134,11 @@ function CalculationForm({ part }: { part: AnyPart }) {
         Check or edit the values. Nothing runs until you approve. Blank fields
         were not provided.
       </p>
+      {!!out.assumptions?.length && <div className="mb-3 rounded-lg border border-amber-400/50 p-2">
+        <p className="font-medium">Illustrative assumptions — confirm or edit before approving</p>
+        <p>These values were chosen at your request and are not confirmed specifications of your setup.</p>
+        <ul>{out.assumptions.map(item => <li key={item.name}>{item.name.replace(/_/g, " ")}: {item.value}</li>)}</ul>
+      </div>}
       <div className="space-y-2">
         {Object.entries(props).map(([k, p]) => (
           <label className="block" key={k}>
@@ -229,17 +205,7 @@ function CalculationForm({ part }: { part: AnyPart }) {
 }
 
 function CalculationResult({ part }: { part: AnyPart }) {
-  const input = part.input as { formula_id?: string } | undefined;
-  return (
-    <div aria-label="Calculation result" className={box}>
-      <div className="mb-1 font-semibold text-primary">
-        Result: {(input?.formula_id ?? "").replace(/_/g, " ")}
-      </div>
-      <pre className="overflow-x-auto whitespace-pre-wrap text-[12px]">
-        {JSON.stringify(part.output, null, 2)}
-      </pre>
-    </div>
-  );
+  return <Activity name="calculate" state={part.state} />;
 }
 
 /** Renders ET-GPT's own tool parts; returns undefined for anything else. */
@@ -255,10 +221,10 @@ export function renderEtPart(part: AnyPart, key: string) {
     );
   }
   if (type === "tool-createPlan") {
-    return <Plan key={key} part={part} />;
+    return <Activity key={key} name="createPlan" state={part.state} />;
   }
   if (type === "tool-proposeCalculation") {
-    return part.state === "output-available" ? (
+    return part.state === "output-available" && (part.output as { prefill?: unknown })?.prefill ? (
       <CalculationForm key={key} part={part} />
     ) : (
       <Activity key={key} name="get_calculator" state={part.state} />
@@ -272,7 +238,9 @@ export function renderEtPart(part: AnyPart, key: string) {
       type === "dynamic-tool"
         ? String((part as { toolName?: string }).toolName)
         : type.slice(5);
-    return <Activity key={key} name={name} state={part.state} />;
+    const output = part.output as { isError?: boolean; error?: unknown } | undefined;
+    const rawVisible = part.input && typeof part.input === "object" && Object.keys(part.input).length > 0;
+    return <div key={key}><Activity name={name} state={output?.isError || output?.error ? "output-error" : part.state} />{rawVisible ? <details className="my-1 rounded border p-2 text-xs"><summary className="cursor-pointer">{name} · debug</summary><pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words">{JSON.stringify({ input: part.input, output: part.output }, null, 2)}</pre></details> : null}</div>;
   }
   return undefined;
 }

@@ -33,6 +33,33 @@ export function groundArgs(prefill: Record<string, unknown>, stated: string[]) {
 
 export type Schema = { type?: string; properties?: Record<string, unknown>; required?: string[] };
 
+/** Bind explicitly labelled millimetre values, never sensor-format inches or
+ * an unlabelled number. Later customer messages override earlier values. */
+export function statedInputs(texts: string[], schema: Schema): Record<string, number> {
+  const aliases: Record<string, string> = {
+    sensor_size_mm: "sensor(?:\\s+(?:width|size))?",
+    sensor_width_mm: "sensor(?:\\s+(?:width|size))?",
+    object_size_mm: "(?:horizontal\\s+)?(?:field of view|fov|object (?:size|width))",
+    working_distance_mm: "(?:working distance|wd)",
+    focal_length_mm: "focal length",
+  };
+  const args: Record<string, number> = {};
+  for (const [key, alias] of Object.entries(aliases)) {
+    if (!(key in (schema.properties ?? {}))) continue;
+    const pattern = new RegExp(`\\b${alias}\\s*(?:(?:of|is)\\s*|[=:]\\s*)?(-?\\d+(?:\\.\\d+)?)\\s*mm\\b`, "gi");
+    const preceding = new RegExp(`(-?\\d+(?:\\.\\d+)?)\\s*mm\\s+(?:${alias})\\b`, "gi");
+    for (const text of texts) {
+      // Also understand "100 mm field of view", but do not move a value
+      // labelled for a different quantity into the following field.
+      const before = key === "object_size_mm" ? [...text.matchAll(preceding)].filter(match =>
+        !/(?:sensor(?:\s+(?:size|width))?|focal length|working distance|wd)\s*(?:[=:]|is|of)?\s*$/i.test(text.slice(0, match.index))) : [];
+      const matches = [...text.matchAll(pattern), ...before].sort((a, b) => a.index! - b.index!);
+      for (const match of matches) args[key] = Number(match[1]);
+    }
+  }
+  return args;
+}
+
 /** Validate submitted form args against the formula's real input schema. */
 export function validateArgs(schema: Schema, args: Record<string, unknown>) {
   const ok = ajv.validate({ ...schema, additionalProperties: false }, args);

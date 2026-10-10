@@ -1,6 +1,7 @@
 "use client";
 
-import { PanelLeftIcon } from "lucide-react";
+import { PanelLeftIcon, PenSquareIcon } from "lucide-react";
+import Link from "next/link";
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -15,16 +16,12 @@ function PureChatHeader({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
-  const { state, toggleSidebar, isMobile } = useSidebar();
-
-  if (state === "collapsed" && !isMobile) {
-    return null;
-  }
+  const { toggleSidebar, setOpenMobile } = useSidebar();
 
   return (
-    <header className="sticky top-0 flex h-14 items-center gap-2 bg-sidebar px-3">
+    <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b border-border/40 bg-sidebar px-3">
       <Button
-        className="md:hidden"
+        aria-label="Open conversation history"
         onClick={toggleSidebar}
         size="icon-sm"
         variant="ghost"
@@ -32,9 +29,10 @@ function PureChatHeader({
         <PanelLeftIcon className="size-4" />
       </Button>
 
-      <span className="font-semibold text-primary">ET-GPT</span>
-
-
+      <span className="flex-1 text-sm font-semibold text-primary">EarthTekniks</span>
+      <Button asChild size="sm" variant="ghost">
+        <Link href="/" onClick={() => setOpenMobile(false)}><PenSquareIcon className="size-4" />New chat</Link>
+      </Button>
     </header>
   );
 }

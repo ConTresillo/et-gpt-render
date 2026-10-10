@@ -78,7 +78,7 @@ export function decide(prompt: Msg[], toolNames: string[]): Decision {
       case "get_calculator": {
         if (!has("proposeCalculation")) return { kind: "text", text: "Calculations need a verified account. Please sign in to run one." };
         const schema = (v?.input_schema ?? {}) as { properties?: Record<string, unknown> };
-        return { input: { formula_id: String(v?.id), prefill: prefillFromText(T, schema) }, kind: "tool", name: "proposeCalculation" };
+        return { input: { formula_id: String(v?.id), prefill: Object.entries(prefillFromText(T, schema)).map(([name, value]) => ({ name, value: String(value) })) }, kind: "tool", name: "proposeCalculation" };
       }
       case "search_knowledge_base": {
         const hit = JSON.stringify(v).slice(0, 300);

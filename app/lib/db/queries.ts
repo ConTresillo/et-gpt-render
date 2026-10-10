@@ -18,6 +18,7 @@ import postgres from "postgres";
 import type { ArtifactKind } from "@/components/chat/artifact";
 import type { VisibilityType } from "@/components/chat/visibility-selector";
 import { ChatbotError } from "../errors";
+import { log } from "@/lib/logger";
 import { principalStore } from "./principal";
 import { generateUUID } from "../utils";
 import {
@@ -35,7 +36,13 @@ import {
 } from "./schema";
 
 // Connects as the restricted et_app role; RLS policies apply to every query.
-const client = postgres(process.env.POSTGRES_URL ?? "");
+if (!process.env.POSTGRES_URL) {
+  throw new Error(
+    "POSTGRES_URL is not set. Set it to your Neon connection string in .env.local. " +
+    "The app requires a live Postgres connection — no embedded fallback exists."
+  );
+}
+const client = postgres(process.env.POSTGRES_URL);
 const rootDb = drizzle(client);
 
 // Run fn inside a transaction that carries the request's principal so Postgres
@@ -53,7 +60,7 @@ function scoped<T>(fn: (db: typeof rootDb) => Promise<T>): Promise<T> {
       while (c?.cause) {
         c = c.cause as typeof c;
       }
-      console.error("[db] query failed:", c?.code, c?.message);
+      log.chat.error({ code: c?.code, msg: c?.message }, "db query failed");
       throw e;
     }
   });
@@ -98,6 +105,7 @@ export async function deleteChatById({ id }: { id: string }) {
       .delete(chat)
       .where(eq(chat.id, id))
       .returning();
+    if (chatsDeleted) { const { deleteConversationState } = await import("@/lib/ai/workflow"); await deleteConversationState(chatsDeleted.id, chatsDeleted.userId); }
     return chatsDeleted;
   } catch (error) {
     throw new ChatbotError("bad_request:database", { cause: error });
@@ -128,6 +136,8 @@ export async function deleteAllChatsByUserId({ userId }: { userId: string }) {
       .where(eq(chat.userId, userId))
       .returning();
 
+    const { deleteConversationState } = await import("@/lib/ai/workflow");
+    for (const deletedChat of deletedChats) await deleteConversationState(deletedChat.id, deletedChat.userId);
     return { deletedCount: deletedChats.length };
   } catch (error) {
     throw new ChatbotError("bad_request:database", { cause: error });

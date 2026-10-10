@@ -47,7 +47,7 @@
     if (open && !frame) {
       frame = document.createElement("iframe");
       frame.title = "EarthTekniks chat";
-      frame.allow = "microphone";
+      frame.allow = "microphone; clipboard-write";
       frame.src = `${origin}/?widget=${encodeURIComponent(widgetId)}`;
       panel.appendChild(frame);
     }

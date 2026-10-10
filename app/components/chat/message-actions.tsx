@@ -2,7 +2,6 @@ import equal from "fast-deep-equal";
 import { memo, useCallback } from "react";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
-import { useCopyToClipboard } from "usehooks-ts";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import {
@@ -25,7 +24,6 @@ export function PureMessageActions({
   onEdit?: () => void;
 }) {
   const { mutate } = useSWRConfig();
-  const [_, copyToClipboard] = useCopyToClipboard();
 
   const textFromParts = message.parts
     ?.filter((part) => part.type === "text")
@@ -39,9 +37,21 @@ export function PureMessageActions({
       return;
     }
 
-    await copyToClipboard(textFromParts);
-    toast.success("Copied to clipboard!");
-  }, [copyToClipboard, textFromParts]);
+    try {
+      await navigator.clipboard.writeText(textFromParts);
+      toast.success("Copied to clipboard!");
+    } catch {
+      const field = document.createElement("textarea");
+      field.value = textFromParts;
+      field.style.cssText = "position:fixed;left:-9999px;top:0";
+      document.body.appendChild(field);
+      field.select();
+      const copied = document.execCommand("copy");
+      field.remove();
+      if (copied) toast.success("Copied to clipboard!");
+      else toast.error("Copy is blocked by this browser. Select the answer text to copy it.");
+    }
+  }, [textFromParts]);
 
   const handleUpvote = useCallback(() => {
     const upvote = fetch(

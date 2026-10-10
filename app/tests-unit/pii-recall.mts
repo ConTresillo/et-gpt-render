@@ -1,5 +1,6 @@
-// Measures PII recall on a labelled sample (>=50 items) and false positives on
-// technical text. Needs the pii-service on PII_URL.
+// Integration test: measures PII recall via the Presidio HTTP service (spaCy NER + regex).
+// Requires the pii-service running: cd pii-service && uvicorn main:app --port 8010
+// PII_SERVICE_URL env var defaults to http://localhost:8010.
 import { redactTexts } from "../lib/pii";
 
 const pii: [string, string][] = [

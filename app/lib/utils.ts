@@ -72,11 +72,14 @@ export function sanitizeText(text: string) {
   return text.replace('<has_function_call>', '');
 }
 
-export function convertToUIMessages(messages: DBMessage[]): ChatMessage[] {
+export function convertToUIMessages(messages: DBMessage[], internal = false): ChatMessage[] {
   return messages.map((message) => ({
     id: message.id,
     role: message.role as 'user' | 'assistant' | 'system',
-    parts: message.parts as UIMessagePart<CustomUIDataTypes, ChatTools>[],
+    parts: (internal ? message.parts : (message.parts as any[]).map(part => {
+      if (part.type === "tool-createPlan" || part.type === "tool-loadSkill" || part.type === "dynamic-tool") return { ...part, input: {}, output: part.output ? { ok: !part.output.error && !part.output.isError } : undefined };
+      return part;
+    })) as UIMessagePart<CustomUIDataTypes, ChatTools>[],
     metadata: {
       createdAt: formatISO(message.createdAt),
     },

@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 import Script from "next/script";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
-import { AppSidebar } from "@/components/chat/app-sidebar";
 import { DataStreamProvider } from "@/components/chat/data-stream-provider";
 import { ChatShell } from "@/components/chat/shell";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { WidgetGuard } from "@/components/chat/widget-guard";
 import { ActiveChatProvider } from "@/hooks/use-active-chat";
 import { redirect } from "next/navigation";
 import { auth } from "../(auth)/auth";
@@ -35,7 +35,9 @@ async function SidebarShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={!isCollapsed}>
-      <AppSidebar user={session?.user} />
+      <Suspense fallback={null}>
+        <WidgetGuard user={session?.user} />
+      </Suspense>
       <SidebarInset>
         <Toaster
           position="top-center"

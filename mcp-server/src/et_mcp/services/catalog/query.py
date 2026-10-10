@@ -187,7 +187,13 @@ def get_product(model_name: str) -> dict:
             "row": res.get("rows", [None])[0] if res.get("rows") else None,
             "error": res.get("error"),
         })
-    return {"model": model_name, "results": results}
+    payload = {"model": model_name, "results": results}
+    errors = [entry["error"] for entry in results if entry.get("error")]
+    if errors:
+        # Keep per-table results (including any successful rows), but surface
+        # failures at the top level so the MCP adapter sets isError correctly.
+        payload["error"] = "; ".join(dict.fromkeys(errors))
+    return payload
 
 
 # ── run_select (validated escape hatch) ──────────────────────────────────────────

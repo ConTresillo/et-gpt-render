@@ -10,7 +10,7 @@ export const limits: Record<UserType, { perMinute: number; perDay: number }> = {
   guest: { perDay: n("RATE_GUEST_DAY", 5), perMinute: n("RATE_GUEST_MIN", 2) },
   user: { perDay: n("RATE_USER_DAY", 50), perMinute: n("RATE_USER_MIN", 5) },
 };
-export const REQUEST_TIME_BUDGET_MS = n("REQUEST_TIME_BUDGET_MS", 60_000);
+export const REQUEST_TIME_BUDGET_MS = n("REQUEST_TIME_BUDGET_MS", 120_000);
 export const MAX_MODEL_STEPS = n("MAX_MODEL_STEPS", 10);
 const GUESTS_PER_IP_HOUR = n("RATE_GUESTS_PER_IP_HOUR", 10);
 

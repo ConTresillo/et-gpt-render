@@ -3,6 +3,7 @@ import type { ToolSet } from "ai";
 import type { UserType } from "@/app/(auth)/auth";
 import { type Action, can } from "@/lib/authz";
 import { adminSql } from "@/lib/db/admin";
+import { log } from "@/lib/logger";
 
 // MCP servers are configured, not hard-coded: MCP_SERVERS='[{"name":"et","url":"http://host:8001/mcp","headers":{}}]'
 type ServerCfg = { name: string; url: string; headers?: Record<string, string> };
@@ -22,18 +23,33 @@ export function serverConfigs(): ServerCfg[] {
  */
 const READ: Action = "tool:read";
 const PERMISSIONS: Record<string, Action | "hidden" | "admin:access"> = {
+  search_calculator: READ,
+  get_calculator: READ,
+  search_lookups: READ,
+  get_reference: READ,
+  lookup: READ,
+  search_knowledge_base: READ,
+  get_document: READ,
+  list_families: READ,
+  list_tables: READ,
+  describe_table: READ,
+  search_knowledge: READ,
+  get_table_knowledge: READ,
+  lookup_model: READ,
+  get_product: READ,
+  search_products: READ,
   calculate: "hidden",
   run_select: "admin:access", // raw SQL: admins only
 };
 export function actionFor(tool: string): Action | "hidden" {
-  return PERMISSIONS[tool] ?? READ;
+  return PERMISSIONS[tool] ?? "hidden";
 }
 
 async function logTool(userId: string, tool: string, ok: boolean, chatId?: string) {
   try {
     await adminSql`insert into "ToolLog" ("userId", "chatId", tool, ok) values (${userId}, ${chatId ?? null}, ${tool}, ${ok})`;
   } catch (e) {
-    console.error("[mcp] tool log failed", e);
+    log.mcp.error({ err: e }, "tool log failed");
   }
 }
 
@@ -77,7 +93,7 @@ export async function openMcp(role: UserType, userId: string, chatId?: string): 
       Object.assign(all, await client.tools());
     } catch (e) {
       degraded = true;
-      console.error(`[mcp] ${cfg.name} unavailable`, e);
+      log.mcp.error({ err: e, server: cfg.name }, "MCP server unavailable");
     }
   }
 

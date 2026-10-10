@@ -65,7 +65,7 @@ const PureChatItem = ({
         isActive={isActive}
       >
         <Link href={`/chat/${chat.id}`} onClick={closeMobile}>
-          <span className="truncate">{chat.title}</span>
+          <span className="min-w-0 flex-1 truncate pr-5" title={chat.title}>{chat.title}</span>
         </Link>
       </SidebarMenuButton>
 

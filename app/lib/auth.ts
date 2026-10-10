@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { log } from "@/lib/logger";
 import { randomUUID } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -24,7 +25,7 @@ async function sendVerificationEmail({
   user: { email: string };
   url: string;
 }) {
-  console.log(`[auth] verification link for ${u.email}: ${url}`);
+  log.auth.info({ email: u.email, url }, "verification link generated");
   const dir = process.env.DEV_MAIL_DIR;
   if (dir) {
     await mkdir(dir, { recursive: true });
@@ -63,7 +64,7 @@ export const authServer = betterAuth({
   },
   plugins: [
     anonymous({
-      emailDomainName: "guest.etgpt.local",
+      emailDomainName: process.env.GUEST_EMAIL_DOMAIN ?? "guest.etgpt.local",
       // Guest signs up/in: keep their chats, then the guest row is removed.
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         await adminSql`update "Chat" set "userId" = ${newUser.user.id} where "userId" = ${anonymousUser.user.id}`;
@@ -83,7 +84,7 @@ export const authServer = betterAuth({
   },
   secret: process.env.BETTER_AUTH_SECRET,
   session: {
-    cookieCache: { enabled: true, maxAge: 300 },
+    cookieCache: { enabled: false },
     expiresIn: 60 * 60 * 24 * 30,
   },
 });

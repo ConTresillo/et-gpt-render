@@ -1,0 +1,30 @@
+import { config } from "dotenv";
+import { chromium } from "@playwright/test";
+import assert from "node:assert/strict";
+config({ path: ".env.local", quiet: true });
+const browser = await chromium.launch({ headless: true });
+try {
+  const context = await browser.newContext({ viewport: { width: 400, height: 600 } });
+  const login = await context.request.post("http://localhost:3100/api/auth/sign-in/email", { data: { email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD }, headers: { origin: "http://localhost:3100" } });
+  assert.equal(login.status(), 200);
+  const page = await context.newPage();
+  await page.goto("http://localhost:3100/?widget=1", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Open conversation history" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.waitFor();
+  const content = dialog.locator('[data-sidebar="content"]');
+  await page.waitForTimeout(1500);
+  const newChat = dialog.getByRole("button", { name: "New chat", exact: true });
+  const before = await newChat.boundingBox();
+  await content.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  const after = await newChat.boundingBox();
+  assert(before && after && Math.abs(before.y - after.y) < 1, "new chat remains fixed when history scrolls");
+  assert(after.y >= 0 && after.y + after.height <= 600, "new chat fits widget viewport");
+  assert(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth), "no horizontal overflow");
+  await page.screenshot({ path: ".widget-qa.png" });
+  console.log("PASS compact widget history controls and overflow");
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 820, height: 600 });
+  assert(await page.getByRole("link", { name: "New chat", exact: true }).last().isVisible(), "new chat visible in expanded chat");
+  console.log("PASS expanded chat new-chat control");
+} finally { await browser.close(); }

@@ -112,7 +112,12 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   } = useSWRInfinite<ChatHistory>(
     user ? getChatHistoryPaginationKey : () => null,
     fetcher,
-    { fallbackData: [], revalidateOnFocus: false }
+    {
+      fallbackData: [],
+      revalidateOnFocus: true,
+      dedupingInterval: 2_000,
+      refreshInterval: (pages) => pages?.some((page) => page.chats.some((chat) => chat.title === "New chat")) ? 3_000 : 0,
+    }
   );
 
   const router = useRouter();

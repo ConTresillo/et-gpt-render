@@ -230,6 +230,7 @@ All via `.env` (see `.env.example`), loaded through `settings.py`. Real environm
 | Var | Required | Default | Used for |
 |-----|----------|---------|----------|
 | `SUPABASE_DB_URL` | catalog only | — | read-only catalog connection (Session pooler URI) |
+| `SUPABASE_POOLER_DB_URL` | no | — | explicit Session pooler URI, preferred over `SUPABASE_DB_URL` when supplied |
 | `CATALOG_SCHEMA` | no | `ragav` | schema holding the catalog tables |
 | `CATALOG_HIDE_PRICES` | no | `false` | drop price columns and reject price queries (set `true` for customer chat) |
 | `MCP_ALLOWED_HOSTS` | no | — | extra Host headers accepted over HTTP (comma-separated) |

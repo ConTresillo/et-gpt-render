@@ -29,6 +29,48 @@
       "when": 1710000300000,
       "tag": "0003_tool_log",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1710000400000,
+      "tag": "0004_admin_insights",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791564730000,
+      "tag": "0005_skills",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791564731000,
+      "tag": "0006_system_config",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791564732000,
+      "tag": "0007_search_and_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791564733000,
+      "tag": "0008_perf_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791564734000,
+      "tag": "0009_user_memory",
+      "breakpoints": true
     }
   ]
 }

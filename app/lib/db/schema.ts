@@ -3,7 +3,9 @@ import {
   bigint,
   boolean,
   foreignKey,
+  integer,
   json,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -188,3 +190,101 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const toolLog = pgTable("ToolLog", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("userId").notNull(),
+  chatId: uuid("chatId"),
+  tool: text("tool").notNull(),
+  ok: boolean("ok").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+export type ToolLog = InferSelectModel<typeof toolLog>;
+
+export const insightReport = pgTable("InsightReport", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  windowDays: integer("windowDays").notNull().default(30),
+  status: text("status").notNull().default("pending"),
+  headline: text("headline"),
+  overview: text("overview"),
+  topTopics: jsonb("topTopics"),
+  recommendations: jsonb("recommendations"),
+  errorMsg: text("errorMsg"),
+  analyzedCount: integer("analyzedCount"),
+  generatedAt: timestamp("generatedAt"),
+  prevInsightId: uuid("prevInsightId"),
+  trendSummary: text("trendSummary"),
+});
+
+export type InsightReport = InferSelectModel<typeof insightReport>;
+
+export const systemConfig = pgTable("SystemConfig", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  label: text("label").notNull(),
+  description: text("description"),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type SystemConfig = InferSelectModel<typeof systemConfig>;
+
+export const skill = pgTable("Skill", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  triggerPatterns: jsonb("triggerPatterns").notNull().default([]),
+  promptTemplate: text("promptTemplate").notNull(),
+  useCount: integer("useCount").notNull().default(0),
+  score: integer("score").notNull().default(50),
+  archived: boolean("archived").notNull().default(false),
+  source: text("source").notNull().default("manual"),
+});
+
+export type Skill = InferSelectModel<typeof skill>;
+
+export const proposedSkill = pgTable("ProposedSkill", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  action: text("action").notNull().default("new"),
+  targetSkillId: uuid("targetSkillId"),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  triggerPatterns: jsonb("triggerPatterns").notNull().default([]),
+  promptTemplate: text("promptTemplate").notNull(),
+  rationale: text("rationale").notNull(),
+  sourceQueryIds: jsonb("sourceQueryIds").notNull().default([]),
+  exampleQueries: jsonb("exampleQueries").notNull().default([]),
+  status: text("status").notNull().default("pending"),
+  reviewedBy: uuid("reviewedBy"),
+  reviewedAt: timestamp("reviewedAt"),
+  reviewNote: text("reviewNote"),
+});
+
+export type ProposedSkill = InferSelectModel<typeof proposedSkill>;
+
+export const appLog = pgTable("AppLog", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  level: text("level").notNull(),
+  module: text("module").notNull().default("app"),
+  message: text("message").notNull(),
+  data: jsonb("data"),
+  createdAt: timestamp("createdAt", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type AppLog = InferSelectModel<typeof appLog>;
+
+export const userMemory = pgTable("UserMemory", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  chatId: uuid("chatId"),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type UserMemory = InferSelectModel<typeof userMemory>;

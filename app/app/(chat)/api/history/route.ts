@@ -33,7 +33,13 @@ async function GETImpl(request: NextRequest) {
     startingAfter,
   });
 
-  return Response.json(chats);
+  return Response.json(chats, {
+    headers: {
+      // Cache per-user in the browser for 10 s; stale for 60 s while revalidating.
+      // "private" prevents shared/CDN caches from storing user-specific data.
+      "Cache-Control": "private, max-age=10, stale-while-revalidate=60",
+    },
+  });
 }
 
 async function DELETEImpl() {

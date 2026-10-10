@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import { publicToolChunk } from "../lib/ai/public-stream";
+import { convertToUIMessages } from "../lib/utils";
+assert.equal(publicToolChunk({ type: "tool-input-delta", toolCallId: "plan", inputTextDelta: "private plan" }), null);
+assert.deepEqual(publicToolChunk({ type: "tool-input-available", toolName: "createPlan", input: { goal: "private plan", steps: [] } })?.input, {});
+assert.deepEqual(publicToolChunk({ type: "tool-output-available", output: { trace: ["private debug"], steps: [] } })?.output, { ok: true });
+const form = { type: "tool-output-available", output: { formula_id: "focal_length", schema: {}, prefill: { working_distance_mm: 100 } } };
+assert.equal(publicToolChunk(form), form, "customer approval form remains usable");
+const messages = [{ id: "test", role: "assistant", createdAt: new Date(), parts: [{ type: "tool-createPlan", input: { goal: "private" }, output: { steps: ["debug"] } }, { type: "dynamic-tool", toolName: "search_products", input: { sql: "private query" }, output: { rows: [] } }] }] as any;
+const publicMessages = convertToUIMessages(messages);
+assert(!JSON.stringify(publicMessages).includes("private"));
+assert(JSON.stringify(convertToUIMessages(messages, true)).includes("private"), "server retains execution context");
+console.log("PASS internal plans and raw tools stay private; approvals remain public");

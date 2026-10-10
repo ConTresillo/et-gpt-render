@@ -287,7 +287,11 @@ function PureArtifact({
       : true;
 
   const { width: windowWidth, height: windowHeight } = useWindowSize();
-  const isMobile = windowWidth ? windowWidth < 768 : false;
+  // Always initialise false so SSR and first client render agree; useEffect corrects after hydration
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, [windowWidth]);
 
   const artifactDefinition = artifactDefinitions.find(
     (definition) => definition.kind === artifact.kind

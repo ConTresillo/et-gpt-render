@@ -6,6 +6,7 @@ import type { getWeather } from "./ai/tools/get-weather";
 import type { requestSuggestions } from "./ai/tools/request-suggestions";
 import type { updateDocument } from "./ai/tools/update-document";
 import type { Suggestion } from "./db/schema";
+import type { EvidenceSource } from "./ai/evidence";
 
 export const messageMetadataSchema = z.object({
   createdAt: z.string(),
@@ -56,6 +57,7 @@ export type CustomUIDataTypes = {
   "chat-title": string;
   "waiting-status": WaitingStatusData;
   calculationDecision: CalculationDecision;
+  sources: EvidenceSource[];
 };
 
 export type ChatMessage = UIMessage<

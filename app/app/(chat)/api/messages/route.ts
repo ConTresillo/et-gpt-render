@@ -34,12 +34,21 @@ async function GETImpl(request: Request) {
 
   const isReadonly = !session?.user || session.user.id !== chat.userId;
 
-  return Response.json({
-    isReadonly,
-    messages: convertToUIMessages(messages),
-    userId: chat.userId,
-    visibility: chat.visibility,
-  });
+  return Response.json(
+    {
+      isReadonly,
+      messages: convertToUIMessages(messages),
+      userId: chat.userId,
+      visibility: chat.visibility,
+    },
+    {
+      headers: {
+        // Messages don't change once persisted. Cache per-user for 30 s so
+        // navigating back to a chat is instant.
+        "Cache-Control": "private, max-age=30, stale-while-revalidate=120",
+      },
+    }
+  );
 }
 
 export const GET = withPrincipal(GETImpl);

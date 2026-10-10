@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Values from .env populate this object only (they are not exported to
     # os.environ), so every module must read configuration from `settings`.
     supabase_db_url: SecretStr | None = Field(default=None, alias="SUPABASE_DB_URL")
+    supabase_pooler_db_url: SecretStr | None = Field(default=None, alias="SUPABASE_POOLER_DB_URL")
     database_url: SecretStr | None = Field(default=None, alias="DATABASE_URL")
     db_host: str | None = Field(default=None, alias="DB_HOST")
     db_port: int = Field(default=5432, alias="DB_PORT")

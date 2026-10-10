@@ -12,6 +12,7 @@ served through a small in-process TTL cache so repeated reads don't hit the DB.
 import datetime
 import decimal
 import time
+from urllib.parse import urlparse
 
 import psycopg2
 
@@ -20,7 +21,7 @@ from et_mcp.settings import settings
 
 def _dsn() -> str | None:
     """Connection URL (libpq handles percent-encoded passwords and ?sslmode=...)."""
-    for secret in (settings.supabase_db_url, settings.database_url):
+    for secret in (settings.supabase_pooler_db_url, settings.supabase_db_url, settings.database_url):
         if secret and secret.get_secret_value().strip():
             return secret.get_secret_value().strip()
     return None
@@ -61,7 +62,19 @@ def get_connection():
                 "Catalog DB is not configured: set SUPABASE_DB_URL "
                 f"(or {', '.join('DB_' + k.upper() for k in missing)}) in mcp-server/.env."
             )
-    conn = psycopg2.connect(**DB_CONFIG)
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+    except psycopg2.OperationalError as error:
+        host = urlparse(DB_CONFIG.get("dsn", "")).hostname or DB_CONFIG.get("host", "")
+        if host.startswith("db.") and host.endswith(".supabase.co") and any(
+            text in str(error).lower() for text in ("could not translate host", "network is unreachable", "unreachable network")
+        ):
+            raise ConnectionError(
+                "The Supabase direct database endpoint is unreachable from this machine. "
+                "On an IPv4-only network, set SUPABASE_POOLER_DB_URL to the Session pooler "
+                "connection string from Supabase's Connect dialog."
+            ) from error
+        raise
     conn.set_session(readonly=True, autocommit=True)
     return conn
 

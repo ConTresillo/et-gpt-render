@@ -1,12 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "../ai-elements/reasoning";
-
 type MessageReasoningProps = {
   isLoading: boolean;
   reasoning: string;
@@ -14,24 +7,7 @@ type MessageReasoningProps = {
 
 export function MessageReasoning({
   isLoading,
-  reasoning,
+  reasoning: _reasoning,
 }: MessageReasoningProps) {
-  const [hasBeenStreaming, setHasBeenStreaming] = useState(isLoading);
-
-  useEffect(() => {
-    if (isLoading) {
-      setHasBeenStreaming(true);
-    }
-  }, [isLoading]);
-
-  return (
-    <Reasoning
-      data-testid="message-reasoning"
-      defaultOpen={hasBeenStreaming}
-      isStreaming={isLoading}
-    >
-      <ReasoningTrigger />
-      <ReasoningContent>{reasoning}</ReasoningContent>
-    </Reasoning>
-  );
+  return isLoading ? <div role="status" className="animate-pulse text-[13px] text-muted-foreground">Thinking…</div> : null;
 }

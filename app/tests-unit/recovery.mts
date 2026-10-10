@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import { recoveryState, recoveryTools, toolFailure } from "../lib/ai/recovery.ts";
+const step = (input: unknown, output: unknown) => ({ text: "", toolCalls: [{ toolName: "search_products", toolCallId: "a", input }], toolResults: [{ toolName: "search_products", toolCallId: "a", output }] });
+assert.equal(toolFailure({ results: [{ isError: true, error: "bad column" }] }), "bad column");
+assert.equal(toolFailure({ results: [{ rows: [] }] }), undefined);
+const failed = step({ table: "a" }, { error: "bad column" });
+assert.equal(recoveryState([failed]).exhausted, false);
+assert.equal(recoveryState([failed, failed]).exhausted, true);
+assert.equal(recoveryState([failed, step({ table: "b" }, { rows: [{ model_name: "verified" }] })]).latest, undefined);
+assert.equal(recoveryState([{ ...failed, toolResults: [] }]).latest?.tool, "search_products");
+assert(!recoveryTools("proposeCalculation", ["createPlan", "get_calculator", "calculate", "proposeCalculation"]).includes("calculate"));
+assert.deepEqual(recoveryTools("search_products", ["describe_table", "search_products", "get_document"]), ["describe_table", "search_products"]);
+console.log("Recovery checks passed: nested errors, corrected continuation, duplicate cutoff, invalid invocation, permission boundary");

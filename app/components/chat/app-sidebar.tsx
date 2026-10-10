@@ -116,8 +116,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
-        </SidebarHeader>
-        <SidebarContent>
           <SidebarGroup className="pt-1">
             <SidebarGroupContent>
               <SidebarMenu>
@@ -146,6 +144,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+        </SidebarHeader>
+        <SidebarContent>
           <SidebarHistory user={user} />
         </SidebarContent>
         <SidebarFooter className="border-t border-sidebar-border pt-2 pb-3">
