@@ -51,7 +51,7 @@ export async function redactTexts(texts: string[]): Promise<string[]> {
   try {
     const res = await fetch(`${PII_SERVICE_URL}/redact-batch`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(process.env.PII_SERVICE_API_KEY ? { Authorization: `Bearer ${process.env.PII_SERVICE_API_KEY}` } : {}) },
       body: JSON.stringify({ texts }),
       signal: AbortSignal.timeout(5000),
     });

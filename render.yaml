@@ -1,0 +1,93 @@
+# Free demo: no paid workers, private services, disks or Render database.
+services:
+  - type: web
+    name: earthtekniks-chat
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: app
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm db:migrate && pnpm start -- --hostname 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.23.3
+      - key: NODE_ENV
+        value: production
+      - key: RUN_WORKERS
+        value: "1"
+      - key: LLM_PROVIDER
+        value: nvidia
+      - key: ROUTER_PROVIDER
+        value: openjev
+      - key: POSTGRES_URL
+        sync: false
+      - key: POSTGRES_URL_ADMIN
+        sync: false
+      - key: APP_DB_PASSWORD
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: OPENAI_COMPATIBLE_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: OPENAI_COMPATIBLE_MODEL
+        sync: false
+      - key: OPENAI_COMPATIBLE_API_KEY
+        sync: false
+      - key: OPENJEV_API_KEY
+        sync: false
+      - key: MCP_SERVERS
+        sync: false
+      - key: PII_SERVICE_URL
+        sync: false
+      - key: PII_SERVICE_API_KEY
+        sync: false
+      - key: COOKIE_CROSS_SITE
+        value: "1"
+  - type: web
+    name: earthtekniks-mcp
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: deploy/Dockerfile.mcp
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_AUTH_KEY
+        sync: false
+      - key: SUPABASE_POOLER_DB_URL
+        sync: false
+      - key: CATALOG_SCHEMA
+        value: ragav
+      - key: CATALOG_HIDE_PRICES
+        value: "true"
+  - type: web
+    name: earthtekniks-pii
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: deploy/Dockerfile.pii
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_AUTH_KEY
+        sync: false
+  - type: web
+    name: earthtekniks-site
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: website-preview
+    buildCommand: node --check server.mjs
+    startCommand: node server.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 22.23.3
+      - key: HOST
+        value: 0.0.0.0
+      - key: CHAT_ORIGIN
+        sync: false
+      - key: WIDGET_ID
+        value: "1"

@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "node --conditions=react-server --import tsx lib/db/migrate.ts && next build",
+    "build": "next build",
     "start": "next start",
     "worker": "node --conditions=react-server --import tsx scripts/worker.ts",
     "test:agent": "node --conditions=react-server --import tsx tests-unit/mastra.mts",
