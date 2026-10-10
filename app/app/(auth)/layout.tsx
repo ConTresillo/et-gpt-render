@@ -1,5 +1,6 @@
 import { ArrowLeft, Camera, Ruler, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { Toaster } from "sonner";
 
 const FEATURES = [
   { icon: Camera, title: "Product knowledge", text: "Explore inspection systems and catalog specifications." },
@@ -9,6 +10,7 @@ const FEATURES = [
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return <main className="min-h-dvh bg-[#f4f7fc] text-slate-900 lg:grid lg:grid-cols-2">
+    <Toaster position="top-center" theme="light" />
     <section className="relative hidden overflow-hidden bg-[#003399] px-12 py-8 text-white lg:flex lg:flex-col xl:px-20">
       <div className="absolute -right-32 top-32 h-96 w-96 rounded-full border-[48px] border-white/5" aria-hidden="true" />
       <div className="absolute -bottom-40 -left-32 h-[32rem] w-[32rem] rounded-full border-[64px] border-white/5" aria-hidden="true" />
