@@ -19,8 +19,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.json({ code: "unauthorized:chat" }, { status: 401 });
   }
   const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-  const redirectUrl = encodeURIComponent(pathname);
-  return NextResponse.redirect(new URL(`${base}/api/guest?redirectUrl=${redirectUrl}`, request.url));
+  const redirectUrl = encodeURIComponent(pathname + request.nextUrl.search);
+  return NextResponse.redirect(new URL(`${base}/api/guest?redirectUrl=${redirectUrl}`, process.env.BETTER_AUTH_URL || request.url));
 }
 
 export const config = {
