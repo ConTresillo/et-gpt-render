@@ -11,6 +11,9 @@ export function proxy(request: NextRequest) {
   if (PUBLIC.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return NextResponse.next();
   }
+  if ((pathname === "/admin" || pathname.startsWith("/admin/")) && !getSessionCookie(request)) {
+    return NextResponse.redirect(new URL(`/login?redirectUrl=${encodeURIComponent(pathname + request.nextUrl.search)}`, process.env.BETTER_AUTH_URL || request.url));
+  }
   // Cheap presence check only; real validation happens in auth() on each route.
   if (getSessionCookie(request)) {
     return NextResponse.next();

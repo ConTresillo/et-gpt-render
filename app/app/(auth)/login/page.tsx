@@ -35,7 +35,9 @@ export default function Page() {
       });
     } else if (state.status === "success") {
       setIsSuccessful(true);
-      router.push("/");
+      const requested = new URLSearchParams(window.location.search).get("redirectUrl");
+      const target = requested?.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") ? requested : "/";
+      router.push(target);
       router.refresh();
     }
   }, [state.status]);
