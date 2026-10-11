@@ -1,5 +1,6 @@
 import type { Memory } from "@mastra/memory";
 import { Agent } from "@mastra/core/agent";
+import { TokenLimiterProcessor } from "@mastra/core/processors";
 import { createSkill } from "@mastra/core/skills";
 import { toAISdkStream } from "@mastra/ai-sdk";
 import { tool, type ToolSet, type ModelMessage } from "ai";
@@ -13,7 +14,7 @@ import { priceMaskTransform, stripThinkingTransform } from "../guardrails";
 // Mastra owns the agent loop and native skill discovery. Application policy
 // hooks retain catalog grounding, permissions and the editable approval form.
 // Each request gets its own agent and immutable admin configuration snapshot.
-export function createChatAgent(options: { memory?: Memory; model: string; instructions: string; skills: Skill[]; tools: ToolSet }) {
+export function createChatAgent(options: { memory?: Memory; model: string; instructions: string; skills: Skill[]; tools: ToolSet; contextTokenBudget?: number }) {
   // Existing admin names may predate the Agent Skills name convention. Keep
   // their public/config IDs and give Mastra a stable, collision-resistant ID.
   const nativeName = (name: string) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name) && name.length <= 64 ? name
@@ -23,6 +24,7 @@ export function createChatAgent(options: { memory?: Memory; model: string; instr
     name: "EarthTekniks Assistant",
     instructions: options.instructions,
     memory: options.memory,
+    inputProcessors: [new TokenLimiterProcessor({ limit: options.contextTokenBudget ?? 24000, trimMode: "contiguous" })],
     model: getLanguageModel(options.model) as LanguageModelV4,
     skills: () => options.skills.map(skill => createSkill({ name: nativeName(skill.name), description: skill.description.slice(0, 1024), instructions: skill.body })),
     // Mastra serializes normalized tool results itself. AI SDK v7's

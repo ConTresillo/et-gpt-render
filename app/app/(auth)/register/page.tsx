@@ -31,7 +31,7 @@ export default function Page() {
       });
     } else if (state.status === "success") {
       toast({
-        description: "Account created. Check your email to verify, then sign in.",
+        description: "Account created. Continue to sign in. If verification is enabled, verify your email first.",
         type: "success",
       });
       router.push("/login");

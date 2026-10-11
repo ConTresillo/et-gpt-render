@@ -15,6 +15,7 @@ import {
 } from "@/lib/db/schema";
 
 const crossSite = process.env.COOKIE_CROSS_SITE === "1";
+const requireEmailVerification = process.env.AUTH_REQUIRE_EMAIL_VERIFICATION === "1";
 
 // ponytail: no SMTP yet. Verification links are logged (and written to
 // DEV_MAIL_DIR for tests). Add an SMTP sender here before production.
@@ -52,14 +53,14 @@ export const authServer = betterAuth({
     },
   }),
   emailAndPassword: {
-    autoSignIn: false,
+    autoSignIn: !requireEmailVerification,
     enabled: true,
     minPasswordLength: 8,
-    requireEmailVerification: true,
+    requireEmailVerification,
   },
   emailVerification: {
     autoSignInAfterVerification: true,
-    sendOnSignUp: true,
+    sendOnSignUp: requireEmailVerification,
     sendVerificationEmail,
   },
   plugins: [

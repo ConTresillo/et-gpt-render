@@ -560,7 +560,7 @@ async function POSTImpl(request: Request) {
         let missingInputs: string[] = [];
         let recoveryExhausted = false;
         const { memory: nativeMemory } = await getMastraStorage();
-        const agent = createChatAgent({ memory: nativeMemory, model: config.model, instructions, skills: skillLibrary, tools: tools as ToolSet });
+        const agent = createChatAgent({ memory: nativeMemory, model: config.model, instructions, skills: skillLibrary, tools: tools as ToolSet, contextTokenBudget: config.contextTokenBudget });
         const agentStream = await streamChatAgent(agent, model.messages, {
           abortSignal: AbortSignal.timeout(config.timeBudgetSeconds * 1000),
           maxSteps: config.maxSteps,
@@ -576,9 +576,12 @@ async function POSTImpl(request: Request) {
             const loaded = new Set([...(selectedInstructions ? [selectedInstructions.name] : []), ...steps.flatMap((step) => step.toolCalls.filter((call) => call.toolName === "loadSkill").map((call) => String((call.input as { name?: string }).name)))]);
             const multiple = evidence.sources.filter((source) => source.kind === "catalog" && evidence.used.has(source.id)).length > 1;
             const nextSkill = selectedSkill && !loaded.has(selectedSkill) ? selectedSkill : multiple && !loaded.has(config.tradeoffSkill) ? config.tradeoffSkill : undefined;
-            if (stepNumber >= config.maxSteps - 1) return {
+            // Reserve space for an answer before the framework trims tool evidence.
+            // This conservative estimate is a stop signal; Mastra owns actual token limiting.
+            const approximateContextTokens = (stepInstructions.length + JSON.stringify(model.messages).length + JSON.stringify(steps).length) / 3;
+            if (stepNumber >= config.maxSteps - 1 || approximateContextTokens >= config.contextTokenBudget * 0.75) return {
               toolChoice: "none" as const,
-              instructions: `${stepInstructions}\nFinish this turn now using only verified tool evidence. If the request cannot be completed, explain what remains missing or unavailable. Do not claim unexecuted work is complete.`,
+              instructions: `${stepInstructions}\nFinish this turn now using only verified tool evidence and citations. Give a concise useful summary of what was found. If this is a broad information request, cover the main verified areas rather than listing every detail, and offer to continue with a specific remaining topic. If incomplete, state the remaining topics or missing information clearly. Do not claim exhaustive coverage or unexecuted work is complete. Durable pending inputs and approved facts remain available on the next turn.`,
             };
             const recovery = recoveryState(steps);
             recoveryExhausted = recovery.exhausted;

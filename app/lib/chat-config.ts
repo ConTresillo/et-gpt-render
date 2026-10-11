@@ -13,6 +13,7 @@ export const chatConfigSchema = z.object({
   prompt: z.string().trim().min(1).max(16000),
   timeBudgetSeconds: z.number().int().min(15).max(180),
   maxSteps: z.number().int().min(4).max(20),
+  contextTokenBudget: z.number().int().min(8000).max(96000).default(24000),
   catalogLimit: z.number().int().min(1).max(50),
   chainPlan: z.array(z.object({ area: z.enum(["knowledge", "calculation", "catalog", "answer"]), title: z.string().min(1).max(200) })).min(3).max(12).default([
     { area: "knowledge", title: "Load the relevant skills and discover available tool capabilities" },
@@ -39,6 +40,7 @@ export const defaultChatConfig: ChatConfig = {
   model: DEFAULT_CHAT_MODEL, prompt: regularPrompt,
   timeBudgetSeconds: Math.min(180, Math.max(15, REQUEST_TIME_BUDGET_MS / 1000)),
   maxSteps: MAX_MODEL_STEPS, catalogLimit: 10, tradeoffSkill: "tradeoff",
+  contextTokenBudget: 24000,
   chainPlan: chatConfigSchema.shape.chainPlan.parse(undefined),
   insightSampleLimit: 500,
   insightTopics: chatConfigSchema.shape.insightTopics.parse(undefined),
